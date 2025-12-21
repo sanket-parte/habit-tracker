@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+
+  --primary: #10b981; /* Emerald 500 - Growth color */
+  --primary-foreground: #ffffff;
+
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: #020617; /* Slate 950 */
+  --foreground: #f8fafc;
+
+  --primary: #10b981;
+  --primary-foreground: #ffffff;
+
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}

@@ -1,0 +1,33 @@
+[project]
+name = "habit-tracker-backend"
+version = "0.1.0"
+description = "Minimalist Gamified Habit Tracker Backend"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "sqlalchemy>=2.0.25",
+    "alembic>=1.13.1",
+    "psycopg2-binary>=2.9.9",
+    "pydantic[email]>=2.5.3",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.1.14",
+    "black>=24.1.0",
+    "httpx>=0.26.0",
+]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I", "UP"]
+target-version = "py311"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
