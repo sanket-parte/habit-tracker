@@ -67,8 +67,8 @@ function HabitList({ onLogout }) {
   if (habitsLoading || userLoading) return <div className="p-8 text-center">Loading your garden...</div>;
 
   return (
-    <div className="max-w-md mx-auto w-full pb-24 animate-in fade-in duration-500">
-      <header className="px-4 py-6 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10 shadow-sm mb-4">
+    <div className="max-w-md mx-auto w-full pb-32 animate-in fade-in duration-500">
+      <header className="px-4 py-6 flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 shadow-sm mb-4 transition-all">
         <div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-green-600 bg-clip-text text-transparent">
             {user?.username}'s Garden
@@ -125,7 +125,7 @@ function HabitList({ onLogout }) {
           setEditingHabit(null);
           setIsCreateModalOpen(true);
         }}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-black rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-black rounded-full shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform z-50"
       >
         <Plus size={28} />
       </button>
