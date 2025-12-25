@@ -1,14 +1,42 @@
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
-import { Check, Flame, Trash2, MoreVertical, Edit2, Archive, RotateCcw, MessageSquareHeart } from 'lucide-react';
+import { Check, Flame, Trash2, MoreVertical, Edit2, Archive, RotateCcw } from 'lucide-react';
 import { clsx } from 'clsx';
 import { cn } from '../../lib/utils';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [showReflection, setShowReflection] = useState(false);
     const [reflectionNote, setReflectionNote] = useState('');
     const [reflectionMood, setReflectionMood] = useState('😊');
+
+    // Menu Logic
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const menuButtonRef = useRef(null);
+    const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+
+    // Update menu position when opening
+    useEffect(() => {
+        if (isMenuOpen && menuButtonRef.current) {
+            const rect = menuButtonRef.current.getBoundingClientRect();
+            // Position: vertically below the button, aligned to the right edge
+            setMenuPosition({
+                top: rect.bottom + 8,
+                left: rect.right - 192
+            });
+        }
+    }, [isMenuOpen]);
+
+    // Close on scroll to avoid detached menu
+    useEffect(() => {
+        if (isMenuOpen) {
+            const handleScroll = () => setIsMenuOpen(false);
+            window.addEventListener('scroll', handleScroll, true);
+            return () => window.removeEventListener('scroll', handleScroll, true);
+        }
+    }, [isMenuOpen]);
+
 
     // Drag Logic
     const x = useMotionValue(0);
@@ -29,10 +57,10 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
         setShowReflection(false);
     };
 
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
     return (
-        <div className="relative mb-4 group perspective-1000">
+        <div
+            className="relative mb-4 group perspective-1000"
+        >
             {/* Reflection Modal Overlay */}
             <AnimatePresence>
                 {showReflection && (
@@ -43,6 +71,7 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
                         onClick={(e) => e.stopPropagation()}
                     >
+                        {/* ... modal content same as before ... */}
                         <div className="bg-card dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-primary/20">
                             <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent mb-2">
                                 Great Job! 🎉
@@ -82,7 +111,6 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                 )}
             </AnimatePresence>
 
-
             {/* Success Background (Underlay) */}
             <motion.div
                 style={{ opacity: bgOpacity }}
@@ -106,7 +134,7 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
             >
                 {/* FRONT FACE */}
                 <div className={cn(
-                    "relative p-5 rounded-2xl border transition-all duration-300 flex items-center justify-between overflow-hidden backface-hidden bg-card/90 backdrop-blur-md shadow-sm dark:bg-card/60",
+                    "relative p-5 rounded-2xl border transition-all duration-300 flex items-center justify-between backface-hidden bg-card/90 backdrop-blur-md shadow-sm dark:bg-card/60",
                     habit.is_completed_today
                         ? "border-primary/30 bg-primary/5 dark:bg-primary/10"
                         : "border-border/50"
@@ -131,7 +159,7 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                             </h3>
                             <div className="flex items-center gap-2 mt-0.5">
                                 <p className="text-sm text-muted-foreground font-medium">
-                                    {habit.duration_minutes ? `${habit.duration_minutes}m` : 'Daily'}
+                                    {habit.duration_minutes ? `${habit.duration_minutes} m` : 'Daily'}
                                 </p>
                                 {habit.motivation && (
                                     <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-500 rounded-md font-bold uppercase tracking-wide">
@@ -154,41 +182,14 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                             <span>{habit.current_streak || 0}</span>
                         </div>
 
-                        {/* Menu (Simpler version) */}
+                        {/* Menu Trigger Button */}
                         <button
+                            ref={menuButtonRef}
                             onClick={(e) => { e.stopPropagation(); setIsMenuOpen(!isMenuOpen); }}
-                            className="p-2 text-muted-foreground hover:bg-secondary rounded-full"
+                            className="p-2 text-muted-foreground hover:bg-secondary rounded-full relative z-20"
                         >
                             <MoreVertical size={20} />
                         </button>
-                        {/* Dropdown would go here, simplified for brevity */}
-                        <AnimatePresence>
-                            {isMenuOpen && (
-                                <>
-                                    <div className="fixed inset-0 z-20" onClick={() => setIsMenuOpen(false)} />
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        className="absolute right-0 top-full mt-2 w-40 bg-popover/95 backdrop-blur-xl border border-border rounded-xl shadow-xl z-30 p-1.5 flex flex-col gap-1"
-                                    >
-                                        <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onEdit(habit); }} className="w-full text-left px-3 py-2 text-sm font-medium rounded-lg hover:bg-secondary text-foreground flex items-center gap-2 transition-colors"><Edit2 size={16} /> Edit</button>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setIsMenuOpen(false);
-                                                if (window.confirm('Archive this habit?')) onArchive(habit);
-                                            }}
-                                            className="w-full text-left px-3 py-2 text-sm font-medium rounded-lg hover:bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center gap-2 transition-colors"
-                                        >
-                                            <Archive size={16} /> Archive
-                                        </button>
-                                        <div className="h-px bg-border my-0.5" />
-                                        <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); if (window.confirm('Delete habit?')) onDelete(habit.id); }} className="w-full text-left px-3 py-2 text-sm font-medium rounded-lg hover:bg-destructive/10 text-destructive flex items-center gap-2 transition-colors"><Trash2 size={16} /> Delete</button>
-                                    </motion.div>
-                                </>
-                            )}
-                        </AnimatePresence>
                     </div>
                 </div>
 
@@ -204,12 +205,58 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                     </p>
                 </div>
             </motion.div>
+
+            {/* Menu Dropdown - Portalled to Body */}
+            {isMenuOpen && createPortal(
+                <div className="fixed inset-0 z-[9999] isolate">
+                    {/* Fixed Backdrop */}
+                    <div className="absolute inset-0 bg-black/5" onClick={() => setIsMenuOpen(false)} />
+
+                    {/* Menu Popover */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                        className="fixed w-48 bg-card dark:bg-slate-900 border border-border/50 rounded-xl shadow-2xl p-1.5 flex flex-col gap-1 overflow-hidden"
+                        style={{
+                            top: menuPosition.top,
+                            left: menuPosition.left
+                        }}
+                    >
+                        <button onClick={(e) => { e.stopPropagation(); setIsMenuOpen(false); onEdit(habit); }} className="w-full text-left px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-secondary text-foreground flex items-center gap-3 transition-colors">
+                            <Edit2 size={16} className="text-muted-foreground" /> Edit
+                        </button>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsMenuOpen(false);
+                                if (window.confirm('Archive this habit?')) onArchive(habit);
+                            }}
+                            className="w-full text-left px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center gap-3 transition-colors"
+                        >
+                            <Archive size={16} /> Archive
+                        </button>
+                        <div className="h-px bg-border/50 my-0.5" />
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsMenuOpen(false);
+                                if (window.confirm('Delete habit?')) onDelete(habit.id);
+                            }}
+                            className="w-full text-left px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-destructive/10 text-destructive flex items-center gap-3 transition-colors"
+                        >
+                            <Trash2 size={16} /> Delete
+                        </button>
+                    </motion.div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }
 
 // Add simple CSS for 3D flip if not in tailwind
-/* 
+/*
 .perspective-1000 { perspective: 1000px; }
 .preserve-3d { transform-style: preserve-3d; }
 .backface-hidden { backface-visibility: hidden; }
