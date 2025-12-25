@@ -4,12 +4,16 @@ import { clsx } from 'clsx';
 import { cn } from '../../lib/utils';
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { ConfirmationModal } from '../common/ConfirmationModal';
 
 export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
     const [isFlipped, setIsFlipped] = useState(false);
     const [showReflection, setShowReflection] = useState(false);
     const [reflectionNote, setReflectionNote] = useState('');
     const [reflectionMood, setReflectionMood] = useState('😊');
+
+    // Confirmation State
+    const [confirmAction, setConfirmAction] = useState(null); // { type: 'delete' | 'archive', title: '', message: '' }
 
     // Menu Logic
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -61,6 +65,24 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
         <div
             className="relative mb-4 group perspective-1000"
         >
+            {/* Confirmation Modal */}
+            {confirmAction && createPortal(
+                <ConfirmationModal
+                    isOpen={!!confirmAction}
+                    onClose={() => setConfirmAction(null)}
+                    onConfirm={() => {
+                        if (confirmAction.type === 'delete') onDelete(habit.id);
+                        if (confirmAction.type === 'archive') onArchive(habit);
+                        setConfirmAction(null); // Close modal after action
+                    }}
+                    title={confirmAction.title}
+                    message={confirmAction.message}
+                    confirmText={confirmAction.type === 'delete' ? 'Delete' : 'Archive'}
+                    confirmStyle={confirmAction.type === 'delete' ? 'danger' : 'primary'}
+                />,
+                document.body
+            )}
+
             {/* Reflection Modal Overlay */}
             <AnimatePresence>
                 {showReflection && (
@@ -230,7 +252,11 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsMenuOpen(false);
-                                if (window.confirm('Archive this habit?')) onArchive(habit);
+                                setConfirmAction({
+                                    type: 'archive',
+                                    title: 'Archive Habit?',
+                                    message: 'This will move the habit to archives. You can restore it later.'
+                                });
                             }}
                             className="w-full text-left px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center gap-3 transition-colors"
                         >
@@ -241,7 +267,11 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsMenuOpen(false);
-                                if (window.confirm('Delete habit?')) onDelete(habit.id);
+                                setConfirmAction({
+                                    type: 'delete',
+                                    title: 'Delete Habit?',
+                                    message: 'This action cannot be undone. All streak data will be lost.'
+                                });
                             }}
                             className="w-full text-left px-3 py-2.5 text-sm font-medium rounded-lg hover:bg-destructive/10 text-destructive flex items-center gap-3 transition-colors"
                         >

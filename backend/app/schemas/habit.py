@@ -17,6 +17,17 @@ class HabitBase(BaseModel):
 class HabitCreate(HabitBase):
     pass
 
+class HabitUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    frequency: Optional[str] = None
+    time_of_day: Optional[str] = None
+    color: Optional[str] = None
+    icon: Optional[str] = None
+    motivation: Optional[str] = None
+    duration_minutes: Optional[int] = None
+    is_archived: Optional[bool] = None
+
 class HabitLogBase(BaseModel):
     date: datetime
     completed_at: datetime

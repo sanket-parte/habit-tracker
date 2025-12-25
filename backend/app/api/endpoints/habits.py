@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.models.habit import Habit
 from app.models.user import User
-from app.schemas.habit import Habit as HabitSchema, HabitCreate, HabitLogCreate
+from app.schemas.habit import Habit as HabitSchema, HabitCreate, HabitUpdate, HabitLogCreate
 
 router = APIRouter()
 
@@ -174,7 +174,7 @@ def update_habit(
     *,
     db: Session = Depends(deps.get_db),
     habit_id: str,
-    habit_in: HabitCreate,
+    habit_in: HabitUpdate,
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
