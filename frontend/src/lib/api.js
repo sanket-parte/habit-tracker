@@ -14,8 +14,8 @@ export const createHabit = async (habit) => {
     return data;
 };
 
-export const completeHabit = async (habitId) => {
-    const { data } = await api.post(`/habits/${habitId}/log`);
+export const completeHabit = async (habitId, logData = null) => {
+    const { data } = await api.post(`/habits/${habitId}/log`, logData);
     return data;
 };
 

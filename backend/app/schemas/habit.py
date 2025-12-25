@@ -10,6 +10,8 @@ class HabitBase(BaseModel):
     time_of_day: str = "ANY"
     color: str = "#10b981"
     icon: str = "sprout"
+    motivation: Optional[str] = None
+    duration_minutes: Optional[int] = 2
     is_archived: bool = False
 
 class HabitCreate(HabitBase):
@@ -18,6 +20,13 @@ class HabitCreate(HabitBase):
 class HabitLogBase(BaseModel):
     date: datetime
     completed_at: datetime
+    note: Optional[str] = None
+    mood: Optional[str] = None
+
+class HabitLogCreate(BaseModel):
+    date: datetime
+    note: Optional[str] = None
+    mood: Optional[str] = None
 
 class HabitLog(HabitLogBase):
     id: UUID

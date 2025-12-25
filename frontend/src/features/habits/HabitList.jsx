@@ -23,7 +23,7 @@ export function HabitList() {
     });
 
     const completeMutation = useMutation({
-        mutationFn: completeHabit,
+        mutationFn: ({ id, logData }) => completeHabit(id, logData),
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['habits'] });
             queryClient.invalidateQueries({ queryKey: ['user'] }); // Refresh XP/Level
@@ -83,7 +83,7 @@ export function HabitList() {
                     <div key={habit.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                         <HabitCard
                             habit={habit}
-                            onComplete={(id) => completeMutation.mutate(id)}
+                            onComplete={(id, logData) => completeMutation.mutate({ id, logData })}
                             onDelete={(id) => deleteMutation.mutate(id)}
                             onEdit={(habit) => {
                                 setEditingHabit(habit);

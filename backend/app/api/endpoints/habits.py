@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app.models.habit import Habit
 from app.models.user import User
-from app.schemas.habit import Habit as HabitSchema, HabitCreate
+from app.schemas.habit import Habit as HabitSchema, HabitCreate, HabitLogCreate
 
 router = APIRouter()
 
@@ -79,25 +79,40 @@ def create_habit(
     """
     Create new habit.
     """
-    habit = Habit(
-        **habit_in.model_dump(),
-        user_id=current_user.id
-    )
-    db.add(habit)
-    db.commit()
-    db.refresh(habit)
-    return habit
+    existing_habit = db.query(Habit).filter(
+        Habit.user_id == current_user.id,
+        Habit.title == habit_in.title
+    ).first()
+    
+    if existing_habit and not existing_habit.is_archived:
+        raise HTTPException(status_code=400, detail="You already have a habit with this name")
+
+    try:
+        habit = Habit(
+            **habit_in.model_dump(),
+            user_id=current_user.id
+        )
+        db.add(habit)
+        db.commit()
+        db.refresh(habit)
+        return habit
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="You already have a habit with this name")
 
 @router.post("/{habit_id}/log", response_model=Any)
 def complete_habit(
     *,
     db: Session = Depends(deps.get_db),
     habit_id: str,
+    log_in: HabitLogCreate | None = None, # Make optional to support legacy quick-complete
     current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
     Log a habit completion.
     """
+    from app.schemas.habit import HabitLogCreate
+    
     habit = db.query(Habit).filter(Habit.id == habit_id).first()
     if not habit:
         raise HTTPException(status_code=404, detail="Habit not found")
@@ -134,6 +149,11 @@ def complete_habit(
     
     # Create Log
     log = HabitLog(habit_id=habit.id, date=func.now())
+    
+    if log_in:
+        log.note = log_in.note
+        log.mood = log_in.mood
+        
     db.add(log)
     
     # Gamification
