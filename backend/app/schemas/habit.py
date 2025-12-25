@@ -10,6 +10,7 @@ class HabitBase(BaseModel):
     time_of_day: str = "ANY"
     color: str = "#10b981"
     icon: str = "sprout"
+    is_archived: bool = False
 
 class HabitCreate(HabitBase):
     pass

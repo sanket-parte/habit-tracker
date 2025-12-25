@@ -20,7 +20,10 @@ def read_habits(
     """
     Retrieve habits.
     """
-    habits = db.query(Habit).filter(Habit.user_id == current_user.id).offset(skip).limit(limit).all()
+    habits = db.query(Habit).filter(
+        Habit.user_id == current_user.id,
+        Habit.is_archived == False
+    ).offset(skip).limit(limit).all()
     
     # Calculate streaks
     from datetime import datetime, timedelta

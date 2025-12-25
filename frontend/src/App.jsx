@@ -109,6 +109,7 @@ function HabitList({ onLogout }) {
               setEditingHabit(habit);
               setIsCreateModalOpen(true);
             }}
+            onArchive={(habit) => updateMutation.mutate({ id: habit.id, data: { is_archived: true } })}
           />
         ))}
 

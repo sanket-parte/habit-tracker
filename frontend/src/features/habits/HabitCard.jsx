@@ -7,7 +7,7 @@ function cn(...inputs) {
     return twMerge(clsx(inputs));
 }
 
-export function HabitCard({ habit, onComplete, onDelete, onEdit }) {
+export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
     const x = useMotionValue(0);
     const bgOpacity = useTransform(x, [0, 100], [0, 1]);
     const xInput = [0, 100];
@@ -23,7 +23,7 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit }) {
     };
 
     return (
-        <div className="relative mb-3 group">
+        <div className="relative mb-3 group hover:z-40">
             {/* Background Layer (Success State) */}
             <motion.div
                 style={{ opacity: bgOpacity }}
@@ -76,6 +76,17 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit }) {
                                 className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2"
                             >
                                 <span className="text-gray-700 dark:text-gray-200">Edit</span>
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (window.confirm('Archive this habit?')) {
+                                        onArchive(habit);
+                                    }
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-orange-50 dark:hover:bg-orange-900/20 text-orange-500 flex items-center gap-2"
+                            >
+                                <span className="text-orange-600 dark:text-orange-400">Archive</span>
                             </button>
                             <button
                                 onClick={(e) => {
