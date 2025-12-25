@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Sprout, Flower, Trees, Leaf } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 export function PlantVisual({ level }) {
     // Simple visual progression based on level
@@ -9,39 +10,45 @@ export function PlantVisual({ level }) {
     // Level 10+: Trees
 
     let Icon = Sprout;
-    let color = "text-green-500";
-    let scale = 1;
+    let colorClass = "text-primary bg-primary/10";
     let label = "Seedling";
 
     if (level >= 3 && level < 6) {
         Icon = Leaf;
-        color = "text-emerald-500";
-        scale = 1.1;
+        colorClass = "text-emerald-500 bg-emerald-500/10";
         label = "Sapling";
     } else if (level >= 6 && level < 10) {
         Icon = Flower;
-        color = "text-pink-500";
-        scale = 1.2;
+        colorClass = "text-pink-500 bg-pink-500/10";
         label = "Blooming";
     } else if (level >= 10) {
         Icon = Trees;
-        color = "text-green-700";
-        scale = 1.3;
+        colorClass = "text-green-600 bg-green-600/10";
         label = "Forest";
     }
 
     return (
-        <div className="flex flex-col items-center justify-center p-6 bg-green-50/50 dark:bg-green-900/10 rounded-2xl border border-green-100 dark:border-green-900/30">
+        <div className="relative overflow-hidden flex flex-col items-center justify-center p-6 rounded-2xl border border-border/50 bg-card/40 backdrop-blur-sm shadow-sm group">
+            {/* Ambient Background Glow */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
+
             <motion.div
                 initial={{ scale: 0, rotate: -10 }}
-                animate={{ scale: scale, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                className={`p-4 bg-white dark:bg-gray-800 rounded-full shadow-lg mb-3 ${color}`}
+                animate={{ scale: 1, rotate: 0 }}
+                key={label} // Trigger animation on level change
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                className={cn(
+                    "relative p-5 rounded-full mb-3 ring-4 ring-white/50 dark:ring-white/5 shadow-xl backdrop-blur-md",
+                    colorClass
+                )}
             >
-                <Icon size={48} />
+                <Icon size={48} strokeWidth={1.5} />
             </motion.div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase tracking-wide">{label}</h3>
-            <p className="text-xs text-gray-500">Keep growing!</p>
+
+            <div className="relative text-center">
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">{label}</h3>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">Keep growing your garden!</p>
+            </div>
         </div>
     );
 }
