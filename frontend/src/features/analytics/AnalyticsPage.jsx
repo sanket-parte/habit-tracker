@@ -4,7 +4,10 @@ import { getHabits } from '../../lib/api';
 import { BarChart3 } from 'lucide-react';
 
 export function AnalyticsPage({ onBack }) {
-    const { data: habits } = useQuery({ queryKey: ['habits'], queryFn: getHabits });
+    const { data: habits } = useQuery({
+        queryKey: ['habits', 'analytics'],
+        queryFn: () => getHabits({ pageParam: 0 })
+    });
 
     // Aggregate all logs to get "Total Completions per Day"
     const getActivityMap = () => {
