@@ -36,6 +36,7 @@ ENV PYTHONUNBUFFERED=1 \
 # Install runtime system dependencies (only what's needed for running, not building)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-5 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy virtualenv from builder
