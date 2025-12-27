@@ -1,19 +1,61 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useRef } from 'react';
+import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { getHabits, getMe, createHabit, completeHabit, deleteHabit, updateHabit } from '../../lib/api';
 import { HabitCard } from './HabitCard';
 import { XPBar } from '../gamification/XPBar';
 import { PlantVisual } from '../gamification/PlantVisual';
 import { CreateHabitModal } from './CreateHabitModal';
-import { Plus } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 
 export function HabitList() {
-    const { data: habits, isLoading: habitsLoading } = useQuery({ queryKey: ['habits'], queryFn: getHabits });
+    const queryClient = useQueryClient();
+
+    // Infinite Query for Habits
+    const {
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading: habitsLoading,
+    } = useInfiniteQuery({
+        queryKey: ['habits'],
+        queryFn: getHabits,
+        getNextPageParam: (lastPage, allPages) => {
+            // Assuming default limit is 10. If last page has 10 items, there might be more.
+            // If less than 10, we are at the end.
+            return lastPage.length === 10 ? allPages.length * 10 : undefined;
+        },
+        initialPageParam: 0,
+    });
+
     const { data: user, isLoading: userLoading } = useQuery({ queryKey: ['user'], queryFn: getMe });
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingHabit, setEditingHabit] = useState(null);
 
-    const queryClient = useQueryClient();
+    // Intersection Observer for Infinite Scroll
+    const loadMoreRef = useRef(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (loadMoreRef.current) {
+            observer.observe(loadMoreRef.current);
+        }
+
+        return () => {
+            if (loadMoreRef.current) {
+                observer.unobserve(loadMoreRef.current);
+            }
+        };
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
 
     const createMutation = useMutation({
         mutationFn: createHabit,
@@ -47,6 +89,10 @@ export function HabitList() {
         },
     });
 
+    // Flatten pages into a single list of habits
+    const habits = data?.pages.flatMap(page => page) || [];
+
+
     if (habitsLoading || userLoading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
@@ -77,10 +123,12 @@ export function HabitList() {
             <div className="px-4 space-y-4">
                 <h2 className="text-lg font-semibold px-2 flex items-center gap-2">
                     Your Habits
-                    <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-secondary-foreground">{habits?.length || 0}</span>
+                    <span className="text-xs bg-secondary px-2 py-0.5 rounded-full text-secondary-foreground">{habits.length}</span>
                 </h2>
-                {habits?.map((habit, index) => (
-                    <div key={habit.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+
+                {habits.map((habit, index) => (
+                    // Use a combined key if needed inside infinite scroll, but habit.id should be unique enough
+                    <div key={habit.id} className="animate-fade-in-up" style={{ animationDelay: `${(index % 10) * 50}ms` }}>
                         <HabitCard
                             habit={habit}
                             onComplete={(id, logData) => completeMutation.mutate({ id, logData })}
@@ -94,7 +142,26 @@ export function HabitList() {
                     </div>
                 ))}
 
-                {habits?.length === 0 && (
+                {/* Loading / Sentinel Element */}
+                {hasNextPage && (
+                    <div ref={loadMoreRef} className="py-8 flex justify-center">
+                        {isFetchingNextPage ? (
+                            <Loader2 className="animate-spin text-primary" />
+                        ) : (
+                            <span className="h-4" />
+                        )}
+                    </div>
+                )}
+
+                {/* End of list message */}
+                {!hasNextPage && habits.length > 0 && (
+                    <div className="text-center py-8 text-sm text-muted-foreground">
+                        You've reached the end of your garden. 🌱
+                    </div>
+                )}
+
+
+                {habits.length === 0 && !habitsLoading && (
                     <div className="text-center py-16 opacity-50 flex flex-col items-center">
                         <div className="w-16 h-16 bg-secondary/50 rounded-full mb-4 flex items-center justify-center">
                             <Plus className="text-muted-foreground" size={24} />

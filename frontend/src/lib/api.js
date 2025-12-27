@@ -4,8 +4,9 @@ const api = axios.create({
     baseURL: 'http://localhost:8000/api/v1',
 });
 
-export const getHabits = async () => {
-    const { data } = await api.get('/habits/');
+export const getHabits = async ({ pageParam = 0 }) => {
+    const limit = 10;
+    const { data } = await api.get(`/habits/?skip=${pageParam}&limit=${limit}`);
     return data;
 };
 

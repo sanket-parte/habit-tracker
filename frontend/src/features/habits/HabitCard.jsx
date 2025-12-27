@@ -1,10 +1,10 @@
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { Check, Flame, Trash2, MoreVertical, Edit2, Archive, RotateCcw } from 'lucide-react';
-import { clsx } from 'clsx';
 import { cn } from '../../lib/utils';
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ConfirmationModal } from '../common/ConfirmationModal';
+import { HabitHeatmap } from './HabitHeatmap';
 
 export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
     const [isFlipped, setIsFlipped] = useState(false);
@@ -181,7 +181,7 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                             </h3>
                             <div className="flex items-center gap-2 mt-0.5">
                                 <p className="text-sm text-muted-foreground font-medium">
-                                    {habit.duration_minutes ? `${habit.duration_minutes} m` : 'Daily'}
+                                    {habit.duration_minutes ? `${habit.duration_minutes}m` : 'Daily'}
                                 </p>
                                 {habit.motivation && (
                                     <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-500 rounded-md font-bold uppercase tracking-wide">
@@ -195,12 +195,12 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                     {/* Actions */}
                     <div className="flex items-center gap-1">
                         <div className={cn(
-                            "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold mr-2 border",
+                            "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold mr-2 border transition-all duration-500",
                             habit.current_streak > 0
-                                ? "bg-orange-500/10 text-orange-600 border-orange-500/20 dark:text-orange-400"
+                                ? `bg-orange-500/10 ${fireColors[fireIntensity]} border-orange-500/20 ${fireGlows[fireIntensity]}`
                                 : "bg-secondary text-muted-foreground border-transparent"
                         )}>
-                            <Flame size={14} className={cn(habit.current_streak > 0 && "fill-orange-600 dark:fill-orange-400")} />
+                            <Flame size={14} className={cn(habit.current_streak > 0 && "fill-current")} />
                             <span>{habit.current_streak || 0}</span>
                         </div>
 
@@ -215,16 +215,24 @@ export function HabitCard({ habit, onComplete, onDelete, onEdit, onArchive }) {
                     </div>
                 </div>
 
-                {/* BACK FACE (Motivation) */}
+                {/* BACK FACE (Motivation & Stats) */}
                 <div
-                    className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-6 text-white backface-hidden rotate-y-180 flex flex-col justify-center items-center text-center cursor-pointer shadow-xl"
+                    className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-6 text-white backface-hidden rotate-y-180 flex flex-col justify-center items-center text-center cursor-pointer shadow-xl overflow-hidden"
                     onClick={() => setIsFlipped(false)}
                 >
                     <div className="absolute top-3 right-3 opacity-50"><RotateCcw size={16} /></div>
-                    <span className="text-xs font-bold uppercase tracking-widest opacity-70 mb-2">Why I do this</span>
-                    <p className="text-lg font-bold leading-tight">
-                        "{habit.motivation || "To become 1% better every day."}"
-                    </p>
+
+                    <div className="flex-1 flex flex-col justify-center">
+                        <span className="text-xs font-bold uppercase tracking-widest opacity-70 mb-2">Why I do this</span>
+                        <p className="text-lg font-bold leading-tight line-clamp-3">
+                            "{habit.motivation || "To become 1% better every day."}"
+                        </p>
+                    </div>
+
+                    <div className="mt-auto pt-4 border-t border-white/20 w-full flex flex-col items-center">
+                        <span className="text-[10px] font-medium uppercase tracking-wider opacity-60 mb-1">Last 30 Days</span>
+                        <HabitHeatmap logs={habit.logs} />
+                    </div>
                 </div>
             </motion.div>
 
