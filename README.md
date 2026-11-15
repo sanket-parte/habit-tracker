@@ -1,5 +1,7 @@
 # Habit Tracker (Habit Garden)
 
+Side project built with AI coding agents.
+
 A gamified habit tracker. Users sign up, create daily or weekly habits, log completions with an optional note and mood, and earn XP that levels up a plant shown in the UI. The backend is a FastAPI service backed by PostgreSQL; the frontend is a React PWA served by nginx.
 
 ## Features
